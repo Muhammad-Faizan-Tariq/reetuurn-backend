@@ -6,6 +6,7 @@ import connectDB from "./config/db.js";
 import logger from "./config/logger.js";
 import { notFound } from "./middlewares/not-found.middleware.js";
 
+import testRoute from "./routes/test.route.js";
 
 const app = express();
 
@@ -19,6 +20,12 @@ app.use(cookieParser());
 app.get('/', (req, res) => {
     res.send('Hello World 🌍');
 });
+
+
+// Mounting the routes
+app.use('/api/test', testRoute)
+
+
 
 app.use(notFound)
 
