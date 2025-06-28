@@ -7,6 +7,7 @@ import logger from "./config/logger.js";
 import { notFound } from "./middlewares/not-found.middleware.js";
 
 import testRoute from "./routes/test.route.js";
+import authRoute from "./routes/auth.route.js";
 
 const app = express();
 
@@ -24,6 +25,8 @@ app.get('/', (req, res) => {
 
 // Mounting the routes
 app.use('/api/test', testRoute)
+app.use('/api/auth',authRoute)
+
 
 
 
