@@ -18,7 +18,13 @@ const sendOtpEmail = async (email, name, otpCode) => {
 
   const templatePath = path.join(__dirname, "../templates/otp-email.template.ejs");
 
-  const html = await ejs.renderFile(templatePath, { name, otp: otpCode });
+  // const html = await ejs.renderFile(templatePath, { name, otp: otpCode });
+  const html = await ejs.renderFile(templatePath, {
+  name,
+  otp: otpCode,
+  title: "OTP Verification - reetuurn"
+});
+
 
   await transporter.sendMail({
     from: `"Your App Name" <${process.env.SMTP_EMAIL}>`,

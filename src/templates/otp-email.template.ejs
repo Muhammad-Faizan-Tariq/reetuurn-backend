@@ -1,9 +1,98 @@
 <!DOCTYPE html>
-<html>
-  <body style="font-family: sans-serif;">
-    <h2>Hello <%= name %> Hey, Developer!</h2>
-    <p>Here is your OTP code:</p>
-    <h1><%= otp %></h1>
-    <p>This code will expire in 10 minutes. Do not share it with anyone.</p>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title><%= title || 'Notification from reetuurn' %></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f8f9fa;
+        margin: 0;
+        padding: 0;
+        color: #212529;
+      }
+
+      .container {
+        max-width: 600px;
+        margin: 40px auto;
+        background-color: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+      }
+
+      .header {
+        background-color: #0d6efd;
+        color: #ffffff;
+        padding: 20px 30px;
+        text-align: center;
+      }
+
+      .header h1 {
+        margin: 0;
+        font-size: 24px;
+        letter-spacing: 1px;
+      }
+
+      .content {
+        padding: 30px;
+        text-align: center;
+      }
+
+      .content h2 {
+        margin: 0 0 10px;
+        font-size: 22px;
+      }
+
+      .content p {
+        font-size: 16px;
+        line-height: 1.5;
+      }
+
+      .otp-code {
+        font-size: 36px;
+        font-weight: bold;
+        color: #0d6efd;
+        margin: 25px 0;
+        letter-spacing: 5px;
+      }
+
+      .warning {
+        font-size: 14px;
+        color: #dc3545;
+        margin-top: 20px;
+      }
+
+      .footer {
+        background-color: #f1f3f5;
+        color: #6c757d;
+        text-align: center;
+        font-size: 13px;
+        padding: 15px 20px;
+        border-top: 1px solid #dee2e6;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <div class="header">
+        <h1>reetuurn</h1>
+      </div>
+
+      <!-- Content -->
+      <div class="content">
+        <h2>Hello, <%= name %>!</h2>
+        <p>Please use the OTP code below to verify your account:</p>
+        <div class="otp-code"><%= otp %></div>
+        <p class="warning">⚠️ This code will expire in 10 minutes. Do not share it with anyone.</p>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        &copy; <%= new Date().getFullYear() %> reetuurn. All rights reserved.
+      </div>
+    </div>
   </body>
 </html>
