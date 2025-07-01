@@ -34,5 +34,6 @@ export const verifyAndUpdateUser = async (user) => {
 export const updateUserPassword = async (user, hashedPassword) => {
   user.password = hashedPassword;
   user.otp = { code: null, expiry: null };
+  user.isPasswordSet = true;
   return await user.save();
 };

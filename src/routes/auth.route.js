@@ -17,7 +17,7 @@ import {
   emailOnlyValidator,
   resetPasswordValidator,
   validate
-} from "../middlewares/authValidator.middleware.js";
+} from "../validations/auth.validation.js";
 
 const router = express.Router();
 

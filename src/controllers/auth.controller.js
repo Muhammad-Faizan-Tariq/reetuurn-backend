@@ -39,13 +39,11 @@ export const registerUser = async (req, res) => {
       isPasswordSet: true,
       otp: { code: otpCode, expiry: otpExpiry }
     });
-    console.log("Stored OTP for registration:", user.otp.code);
 
     await sendOtpEmail(email, name, otpCode);
 
     return successResponse(res, 201, "User registered. OTP sent to your email.");
   } catch (error) {
-    console.error("Error in registerUser:", error.message);
     return errorResponse(res, 500, "Server error", error);
   }
 };
@@ -61,19 +59,19 @@ export const verifyOtp = async (req, res) => {
     }
 
     const isOtpValid = verifyOtpUtil(user.otp, otp);
-
     if (!isOtpValid) {
       return errorResponse(res, 400, "Invalid or expired OTP");
     }
 
+  
     await verifyAndUpdateUser(user);
 
     return successResponse(res, 200, "Account verified successfully");
   } catch (error) {
-    console.error("Error in verifyOtp:", error.message);
     return errorResponse(res, 500, "Server error", error);
   }
 };
+
 
 // 3. Resend OTP
 export const resendOtp = async (req, res) => {
@@ -93,7 +91,6 @@ export const resendOtp = async (req, res) => {
 
     return successResponse(res, 200, "New OTP sent to your email.");
   } catch (error) {
-    console.error("Error in resendOtp:", error.message);
     return errorResponse(res, 500, "Server error", error);
   }
 };
@@ -126,7 +123,6 @@ export const loginUser = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("Error in loginUser:", error.message);
     return errorResponse(res, 500, "Server error", error);
   }
 };
@@ -137,7 +133,6 @@ export const logoutUser = async (req, res) => {
     clearCookies(res);
     return successResponse(res, 200, "Logged out successfully");
   } catch (error) {
-    console.error("Error in logoutUser:", error.message);
     return errorResponse(res, 500, "Server error", error);
   }
 };
@@ -159,12 +154,10 @@ export const forgetPassword = async (req, res) => {
     user.otp = { code: otpCode, expiry: otpExpiry };
     await user.save();
 
-    console.log("Stored OTP for password reset:", user.otp.code);
     await sendOtpEmail(email, user.name, otpCode);
 
     return successResponse(res, 200, "OTP sent for password reset");
   } catch (error) {
-    console.error("Error in forgetPassword:", error.message);
     return errorResponse(res, 500, "Server error", error);
   }
 };
@@ -186,7 +179,6 @@ export const verifyResetOtp = async (req, res) => {
 
     return successResponse(res, 200, "OTP verified for password reset");
   } catch (error) {
-    console.error("Error in verifyResetOtp:", error.message);
     return errorResponse(res, 500, "Server error", error);
   }
 };
@@ -202,12 +194,13 @@ export const resetPassword = async (req, res) => {
       return errorResponse(res, 404, "User not found");
     }
 
-    // Let Mongoose handle hashing in pre-save hook
-    await updateUserPassword(user, newPassword);
+    const hashedPassword = await hashPassword(newPassword);
+
+    // ✅ Update password and set flag
+    await updateUserPassword(user, hashedPassword);
 
     return successResponse(res, 200, "Password reset successfully");
   } catch (error) {
-    console.error("Error in resetPassword:", error.message);
     return errorResponse(res, 500, "Server error", error);
   }
 };
