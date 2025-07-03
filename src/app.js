@@ -7,6 +7,8 @@ import logger from "./config/logger.js";
 import { notFound } from "./middlewares/not-found.middleware.js";
 
 
+import authRoute from "./routes/auth.route.js";
+
 const app = express();
 
 connectDB();
@@ -19,6 +21,13 @@ app.use(cookieParser());
 app.get('/', (req, res) => {
     res.send('Hello World 🌍');
 });
+
+
+// Mounting the routes
+app.use('/api/auth',authRoute)
+
+
+
 
 app.use(notFound)
 
