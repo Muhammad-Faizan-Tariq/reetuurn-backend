@@ -9,44 +9,12 @@ import { successResponse, errorResponse } from "../utils/response.util.js";
 
 
 import {
-  findUserByEmailOrUsername,
-  createUser,
-  findUserByEmail,
   updateUserOtp,
   verifyAndUpdateUser,
   updateUserPassword
 } from "../services/auth.service.js";
 
-// 1. Register User
-export const registerUser = async (req, res) => {
-  try {
-    const { name, username, email, password } = req.body;
 
-    const userExists = await findUserByEmailOrUsername(email, username);
-    if (userExists) {
-      return errorResponse(res, 400, "Email or username already registered");
-    }
-
-
-    const otpCode = generateOtp();
-    const otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
-
-    const user = await createUser({
-      name,
-      username,
-      email,
-      password,
-      isPasswordSet: true,
-      otp: { code: otpCode, expiry: otpExpiry }
-    });
-
-    await sendOtpEmail(email, name, otpCode);
-
-    return successResponse(res, 201, "User registered. OTP sent to your email.");
-  } catch (error) {
-    return errorResponse(res, 500, "Server error", error);
-  }
-};
 
 // 2. Verify OTP
 export const verifyOtp = async (req, res) => {
@@ -120,7 +88,10 @@ export const loginUser = async (req, res) => {
       user: {
         name: user.name,
         email: user.email
-      }
+      },
+      // token
+      accessToken,
+      refreshToken
     });
   } catch (error) {
     return errorResponse(res, 500, "Server error", error);
