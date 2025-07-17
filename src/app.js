@@ -8,6 +8,7 @@ import { notFound } from "./middlewares/not-found.middleware.js";
 
 
 import authRoute from "./routes/auth.route.js";
+import userProfileRoute from "./routes/userProfile.route.js";
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.get('/', (req, res) => {
 
 // Mounting the routes
 app.use('/api/auth',authRoute)
+app.use('/api/user', userProfileRoute);
 
 
 
