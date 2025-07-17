@@ -15,6 +15,11 @@ const authUserSchema = new mongoose.Schema({
     minlength: [3, "Name must be at least 3 characters"],
     maxlength: [50, "Name must not exceed 50 characters"]
   },
+    userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "UserProfile",
+    required: false,
+  },
   username: {
     type: String,
     required: [true, "Username is required"],
@@ -36,6 +41,7 @@ const authUserSchema = new mongoose.Schema({
   userType: {
     type: String,
     enum: ["customer", "driver"],
+    default: "customer"
   },
   otp: otpSchema,
   isVerified: {
