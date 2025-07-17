@@ -1,0 +1,63 @@
+import mongoose from "mongoose";
+
+const userProfileSchema = new mongoose.Schema({
+  firstName: { 
+    type: String, 
+    required: true 
+  },
+  lastName: { 
+    type: String, 
+    required: true 
+  },
+ address: {
+  zipCode: String,
+  streetAddress: {
+    type: String,
+    required: true,
+    minlength: 5,
+    maxlength: 100
+  },
+  buildingDetails: {
+    type: String,
+    required: true,
+    minlength: 5,
+    maxlength: 100
+  },
+  location: {
+    lat: {
+      type: Number,
+      required: true
+    },
+    lng: {
+      type: Number,
+      required: true
+    }
+  }
+},
+phoneNumber: {
+  type: String,
+  required: true,
+  match: [/^03[0-9]{9}$/, "Invalid phone number"]
+},
+  dob: { 
+    type: Date, 
+    required: true 
+  },
+  gender: {
+  type: String,
+  enum: ["male", "female", "prefer not to say"],
+  required: true
+},
+  preferences: {
+    noMarketingMessages: { 
+        type: Boolean, 
+        default: false 
+    },
+    shareWithPartners: { 
+        type: Boolean, 
+        default: true 
+    }
+  }
+}, { timestamps: true });
+
+export default mongoose.model("UserProfile", userProfileSchema);
