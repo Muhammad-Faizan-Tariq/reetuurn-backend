@@ -175,10 +175,10 @@ export const resetPassword = async (req, res) => {
       return errorResponse(res, 404, "User not found");
     }
 
-    const hashedPassword = await hashPassword(newPassword);
+    // const hashedPassword = await hashPassword(newPassword);
 
     // ✅ Update password and set flag
-    await updateUserPassword(user, hashedPassword);
+    await updateUserPassword(user, newPassword);
 
     return successResponse(res, 200, "Password reset successfully");
   } catch (error) {
