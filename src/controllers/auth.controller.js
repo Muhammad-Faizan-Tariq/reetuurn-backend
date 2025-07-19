@@ -57,7 +57,12 @@ export const resendOtp = async (req, res) => {
     await updateUserOtp(user, otpCode, otpExpiry);
     await sendOtpEmail(email, user.name, otpCode);
 
-    return successResponse(res, 200, "New OTP sent to your email.");
+    return successResponse(
+      res,
+      200,
+      "OTP resent successfully. Check your email.",
+      { otp: otpCode }
+     );
   } catch (error) {
     return errorResponse(res, 500, "Server error", error);
   }
@@ -127,7 +132,12 @@ export const forgetPassword = async (req, res) => {
 
     await sendOtpEmail(email, user.name, otpCode);
 
-    return successResponse(res, 200, "OTP sent for password reset");
+    return successResponse(
+      res,
+      200,
+      "OTP sent to email for password reset. Check your inbox.",
+      { otp: otpCode }
+    );
   } catch (error) {
     return errorResponse(res, 500, "Server error", error);
   }
