@@ -37,7 +37,7 @@ const userProfileSchema = new mongoose.Schema({
 phoneNumber: {
   type: String,
   required: true,
-  match: [/^03[0-9]{9}$/, "Invalid phone number"]
+  match: [/^\+?[1-9]\d{1,14}$/, "Invalid phone number"]
 },
   dob: { 
     type: Date, 
