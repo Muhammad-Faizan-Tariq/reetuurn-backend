@@ -9,7 +9,6 @@ export const createCustomer = async (req, res) => {
   try {
     const {
       name,
-      username,
       email,
       password,
       firstName,
@@ -28,8 +27,8 @@ export const createCustomer = async (req, res) => {
 
 
 
-    if (!name || !username || !email || !password) {
-      return errorResponse(res, 400, "Name, username, email, and password are required");
+    if (!name  || !email || !password) {
+      return errorResponse(res, 400, "Name, email, and password are required");
     }
 
 
@@ -65,9 +64,9 @@ export const createCustomer = async (req, res) => {
       return errorResponse(res, 400, "Invalid date of birth");
     }
 
-    const userExists = await findUserByEmailOrUsername(email, username);
+    const userExists = await findUserByEmailOrUsername(email);
     if (userExists) {
-      return errorResponse(res, 400, "Email or username already registered");
+      return errorResponse(res, 400, "Email already registered");
     }
 
  
@@ -77,7 +76,6 @@ export const createCustomer = async (req, res) => {
 
     const user = await createUser({
       name,
-      username,
       email,
       password,
       isPasswordSet: true,
