@@ -25,11 +25,11 @@ const userProfileSchema = new mongoose.Schema({
   },
   location: {
     lat: {
-      type: Number,
+      type: String,
       required: true
     },
     lng: {
-      type: Number,
+      type: String,
       required: true
     }
   }
@@ -39,9 +39,19 @@ phoneNumber: {
   required: true,
   match: [/^\+?[1-9]\d{1,14}$/, "Invalid phone number"]
 },
-  dob: { 
-    type: Date, 
-    required: true 
+  dob: {
+    day: {
+      type: String,
+      required: true
+    },
+    month: {
+      type: String,
+      required: true
+    },
+    year: {
+      type: String,
+      required: true
+    }
   },
   gender: {
   type: String,
