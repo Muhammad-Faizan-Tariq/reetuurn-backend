@@ -6,10 +6,7 @@ export const registerValidator = [
     .notEmpty().withMessage("Name is required")
     .isLength({ min: 3, max: 50 }).withMessage("Name must be 3–50 characters long"),
 
-  check("username")
-    .notEmpty().withMessage("Username is required")
-    .isLength({ min: 3, max: 30 }).withMessage("Username must be 3–30 characters long"),
-
+  
   check("email")
     .notEmpty().withMessage("Email is required")
     .isEmail().withMessage("Please enter a valid email"),
