@@ -1,9 +1,9 @@
 import AuthUser from "../models/authuser.model.js";
 
 
-export const findUserByEmailOrUsername = async (email, username) => {
+export const findUserByEmailOrUsername = async (email) => {
   return await AuthUser.findOne({
-    $or: [{ email }, { username }]
+    email
   });
 };
 
