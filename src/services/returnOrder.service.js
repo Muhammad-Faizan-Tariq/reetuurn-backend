@@ -1,19 +1,42 @@
 import ReturnOrder from "../models/return-order.model.js";
-import {processPayment} from "./payment.service.js";
+import { processPayment } from "./payment.service.js";
 import { validateOrderData } from "../utils/validation.util.js";
 
 export const handleReturnOrder = async (userId, orderData) => {
   validateOrderData(orderData);
 
-  const order = await ReturnOrder.create({
-    user: userId,
-    ...transformOrderData(orderData),
-    status: "pending",
-  });
+  let order;
+  let retries = 3;
+
+  while (retries > 0) {
+    try {
+      order = await ReturnOrder.create({
+        user: userId,
+        ...transformOrderData(orderData),
+        status: "pending",
+      });
+      break;
+    } catch (error) {
+      if (error.code === 11000 && error.keyPattern?.["metadata.orderNumber"]) {
+        retries--;
+        if (retries === 0)
+          throw new Error("Failed to generate unique order number");
+      } else {
+        throw error;
+      }
+    }
+  }
 
   const payment = await processPayment(order, orderData.paymentMethod);
 
-  order.payment = { ...order.payment, ...payment };
+if (!order.payment) order.payment = {};
+order.payment.method =
+  payment.method || orderData.paymentMethod?.split("_")[0] || "unknown";
+order.payment.type = payment.type || orderData.paymentMethod;
+order.payment.currency = payment.currency || orderData.currency || "EUR";
+order.payment.status = payment.status || "pending";
+
+
   await order.save();
 
   return { order, payment };
@@ -24,22 +47,44 @@ export const getPaymentOptions = () => [
   { id: "paypal", name: "PayPal", provider: "paypal" },
 ];
 
-export const updateOrderStatus = async (orderId, status) => {
-  return await ReturnOrder.findByIdAndUpdate(
-    orderId,
-    { status },
-    { new: true }
-  );
+export const updateOrderStatus = async (orderId, newStatus) => {
+  const order = await ReturnOrder.findById(orderId);
+  if (!order) throw new Error("Order not found");
+
+  const allowedTransitions = {
+    draft: ["pending", "cancelled"],
+    pending: ["scheduled", "cancelled"],
+    scheduled: ["picked_up", "cancelled"],
+    picked_up: [],
+    cancelled: [],
+  };
+
+  const currentStatus = order.status;
+  if (!allowedTransitions[currentStatus]?.includes(newStatus)) {
+    throw new Error(
+      `Invalid status transition: cannot change from ${currentStatus} to ${newStatus}`
+    );
+  }
+
+  order.status = newStatus;
+  await order.save();
+
+  return order;
 };
 
-const transformOrderData = (data) => ({
+export const transformOrderData = (data) => ({
   pickupAddress: data.pickupAddress,
-  packages: data.packages,
+  packages: data.packages.map((pkg) => ({
+    size: pkg.size,
+    dimensions: pkg.dimensions,
+    labelAttached: pkg.labelAttached,
+    carrier: pkg.carrier,
+  })),
   schedule: {
     date: new Date(data.schedule.date),
     timeWindow: {
-      start: data.schedule.startTime,
-      end: data.schedule.endTime,
+      start: data.schedule.timeWindow.start,
+      end: data.schedule.timeWindow.end,
     },
   },
   payment: {
