@@ -8,10 +8,16 @@ import {
   handleControllerError,
 } from "../utils/controller.util.js";
 
-
 export const createReturnOrder = async (req, res) => {
   try {
+    if (!req.user || !req.user._id) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized user" });
+    }
+
     const result = await handleReturnOrder(req.user._id, req.body);
+
     res.status(201).json({
       success: true,
       data: formatOrderResponse(result),
@@ -31,7 +37,17 @@ export const listPaymentOptions = (req, res) => {
 
 export const updateStatus = async (req, res) => {
   try {
-    const order = await updateOrderStatus(req.params.orderId, req.body.status);
+    const { orderId } = req.params;
+    const { status } = req.body;
+
+    if (!status) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Status is required" });
+    }
+
+    const order = await updateOrderStatus(orderId, status);
+
     res.json({ success: true, data: formatOrderResponse(order) });
   } catch (error) {
     handleControllerError(res, error);
