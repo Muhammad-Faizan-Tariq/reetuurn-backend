@@ -10,6 +10,7 @@ import { notFound } from "./middlewares/not-found.middleware.js";
 import authRoute from "./routes/auth.route.js";
 import userProfileRoute from "./routes/userProfile.route.js";
 import returnOrderRoute from "./routes/returnOrder.route.js";
+import receiptRoute from "./routes/reciept.route.js"
 
 
 const app = express();
@@ -30,9 +31,7 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoute);
 app.use('/api/user', userProfileRoute);
 app.use('/api/return-orders', returnOrderRoute);
-
-
-
+app.use("/api/receipts", receiptRoute);
 
 app.use(notFound)
 
