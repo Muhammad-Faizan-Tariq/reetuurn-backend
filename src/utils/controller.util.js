@@ -1,26 +1,48 @@
-export const formatOrderResponse = (result) => ({
-  order: {
-    id: result.order._id,
-    orderNumber: result.order.metadata.orderNumber,
-    status: result.order.status,
-    pickupDate: result.order.schedule.date,
-    pickupWindow: `${result.order.schedule.timeWindow.start}-${result.order.schedule.timeWindow.end}`,
-    total: result.order.payment.amount,
-    currency: result.order.payment.currency,
-    pickupPIN: result.order.metadata.pickupPIN,
-  },
-  payment: result.payment,
-});
+
+export const formatOrderResponse = (result) => {
+  if (!result) return null;
+
+
+  const order = result.order || result;
+
+  return {
+    id: order._id,
+    status: order.status,
+    pickupAddress: order.pickupAddress || null,
+    packages:
+      order.packages?.map((p) => ({
+        size: p.size,
+        dimensions: p.dimensions,
+        labelAttached: p.labelAttached,
+        carrier: p.carrier,
+      })) || [],
+    schedule: order.schedule
+      ? {
+          date: order.schedule.date,
+          timeWindow: {
+            start: order.schedule.timeWindow?.start,
+            end: order.schedule.timeWindow?.end,
+          },
+        }
+      : null,
+    payment: {
+      method: order.payment?.method,
+      type: order.payment?.type,
+      currency: order.payment?.currency,
+      status: order.payment?.status,
+    },
+    createdAt: order.createdAt,
+    updatedAt: order.updatedAt,
+  };
+};
+
 
 export const handleControllerError = (res, error) => {
   console.error("[Controller Error]", error);
-  const status = error.message.includes("validation")
-    ? 400
-    : error.message.includes("payment")
-    ? 402
-    : 500;
-  res.status(status).json({
+
+  return res.status(400).json({
     success: false,
-    message: error.message,
+    message: error.message || "Something went wrong",
+    error: error.errors || error.stack, 
   });
 };
