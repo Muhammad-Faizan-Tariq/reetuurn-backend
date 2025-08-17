@@ -2,7 +2,7 @@ import ReturnOrder from "../models/return-order.model.js";
 import { processPayment } from "./payment.service.js";
 import { validateOrderData } from "../utils/validation.util.js";
 
-export const handleReturnOrder = async (userId, orderData) => {
+export const handleReturnOrder = async (user, orderData) => {
   validateOrderData(orderData);
 
   let order;
@@ -11,7 +11,7 @@ export const handleReturnOrder = async (userId, orderData) => {
   while (retries > 0) {
     try {
       order = await ReturnOrder.create({
-        user: userId,
+        user: user,
         ...transformOrderData(orderData),
         status: "pending",
       });
