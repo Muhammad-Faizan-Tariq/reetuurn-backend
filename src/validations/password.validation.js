@@ -1,8 +1,8 @@
-import { check, body } from "express-validator";
+import { check, body, validationResult } from "express-validator";
 import AuthUser from "../models/authuser.model.js";
+import bcrypt from "bcrypt"; 
 
 export const changePasswordValidator = [
-
   check("currentPassword")
     .notEmpty()
     .withMessage("Current password is required")
@@ -20,7 +20,6 @@ export const changePasswordValidator = [
       return true;
     }),
 
-
   body("newPassword")
     .notEmpty()
     .withMessage("New password is required")
@@ -35,12 +34,10 @@ export const changePasswordValidator = [
     .matches(/[^A-Za-z0-9]/)
     .withMessage("Password must contain at least one special character")
     .custom(async (value, { req }) => {
-
       if (value === req.body.currentPassword) {
         throw new Error("New password must be different from current password");
       }
 
-   
       const user = await AuthUser.findById(req.user._id).select(
         "+passwordHistory"
       );
@@ -68,14 +65,13 @@ export const changePasswordValidator = [
 
 export const privacyPreferencesValidator = [
   check("shareData").isBoolean().withMessage("Share data must be boolean"),
-
   check("marketingEmails")
     .isBoolean()
     .withMessage("Marketing emails must be boolean"),
 ];
 
 export const validate = (req, res, next) => {
-  const errors = validationResult(req);
+  const errors = validationResult(req); // <-- ab ye available hai
   if (!errors.isEmpty()) {
     return res.status(422).json({
       success: false,
