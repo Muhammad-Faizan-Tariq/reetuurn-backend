@@ -73,7 +73,9 @@ export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await AuthUser.findOne({ email });
+    // const user = await AuthUser.findOne({ email });
+    const user = await AuthUser.findOne({ email }).select("+password");
+
     if (!user || !user.isVerified) {
       return errorResponse(res, 401, "Invalid credentials or account not verified");
     }
@@ -120,6 +122,7 @@ export const forgetPassword = async (req, res) => {
     const { email } = req.body;
 
     const user = await AuthUser.findOne({ email });
+    
     if (!user) {
       return errorResponse(res, 404, "User not found");
     }
