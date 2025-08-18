@@ -1,7 +1,7 @@
 import AuthUser from "../models/authuser.model.js";
 
-export const changePassword = async (userId, currentPassword, newPassword) => {
-  const user = await AuthUser.findById(userId);
+export const changePassword = async (user, currentPassword, newPassword) => {
+  const user = await AuthUser.findById(user._id);
   if (!user) {
     throw new Error("User not found");
   }
