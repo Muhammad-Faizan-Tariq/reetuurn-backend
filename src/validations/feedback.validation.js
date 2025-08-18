@@ -1,4 +1,4 @@
-import { check } from "express-validator";
+import { check, validationResult } from "express-validator";
 
 export const createFeedbackValidator = [
   check("message")
