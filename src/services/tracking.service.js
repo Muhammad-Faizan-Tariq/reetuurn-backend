@@ -1,12 +1,15 @@
 import ReturnOrder from "../models/return-order.model.js";
 import { formatTrackingResponse } from "../utils/tracking.util.js";
 
-export const getOrderTracking = async (user, orderNumber) => {
+export const getOrderTracking = async (user, orderIdentifier) => {
   try {
     const order = await ReturnOrder.findOne({
       user: user,
-      "metadata.orderNumber": orderNumber,
-    }).populate("user", "name email"); 
+      $or: [
+        { "metadata.orderNumber": orderIdentifier },
+        { _id: orderIdentifier },
+      ],
+    }).populate("user", "name email");
 
     if (!order) {
       throw new Error("Return order not found");
@@ -30,12 +33,17 @@ export const getUserTrackings = async (user) => {
   }
 };
 
-export const updateTrackingStatus = async (orderNumber, statusData) => {
+export const updateTrackingStatus = async (orderIdentifier, statusData) => {
   try {
     const update = buildStatusUpdate(statusData);
 
     const order = await ReturnOrder.findOneAndUpdate(
-      { "metadata.orderNumber": orderNumber },
+      {
+        $or: [
+          { "metadata.orderNumber": orderIdentifier },
+          { _id: orderIdentifier },
+        ],
+      },
       update,
       { new: true }
     ).populate("user", "name email");
@@ -49,7 +57,6 @@ export const updateTrackingStatus = async (orderNumber, statusData) => {
     throw error;
   }
 };
-
 
 const buildStatusUpdate = (statusData) => {
   const { status, date, timeWindow, notes } = statusData;
@@ -66,7 +73,6 @@ const buildStatusUpdate = (statusData) => {
     updatedAt: new Date(),
   };
 
-
   switch (status) {
     case "planned":
       statusUpdate.schedule = {
@@ -74,15 +80,12 @@ const buildStatusUpdate = (statusData) => {
         timeWindow,
       };
       break;
-
     case "picked_up":
       statusUpdate.pickedUpAt = date;
       break;
-
     case "returned":
       statusUpdate.returnedAt = date;
       break;
-
     case "cancelled":
       statusUpdate.cancelledAt = date;
       statusUpdate.cancelReason = notes;
