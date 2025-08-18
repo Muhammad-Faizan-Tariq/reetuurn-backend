@@ -34,7 +34,7 @@ app.get('/', (req, res) => {
 // Mounting the routes
 app.use('/api/auth', authRoute);
 app.use('/api/customer', userProfileRoute);
-app.use('/api/return-orders', returnOrderRoute);
+app.use('/api/create-return-order', returnOrderRoute);
 app.use("/api/receipts", receiptRoute);
 app.use("/api/tracking", trackingRoute);
 app.use("/api/customer", customerRoute);
