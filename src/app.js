@@ -12,6 +12,7 @@ import userProfileRoute from "./routes/userProfile.route.js";
 import returnOrderRoute from "./routes/returnOrder.route.js";
 import receiptRoute from "./routes/reciept.route.js"
 import tracking from "./routes/tracking.route.js"
+import customer from "./routes/customer.route.js"
 
 
 const app = express();
@@ -30,11 +31,12 @@ app.get('/', (req, res) => {
 
 // Mounting the routes
 app.use('/api/auth', authRoute);
-app.use('/api/user', userProfileRoute);
+app.use('/api/customer', userProfileRoute);
 app.use('/api/return-orders', returnOrderRoute);
 app.use("/api/receipts", receiptRoute);
 app.use("/api/tracking", tracking);
+app.use("/api/customer", customer);
 
-app.use(notFound)
+app.use(notFound);
 
 export default app;
