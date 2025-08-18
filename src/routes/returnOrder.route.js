@@ -7,12 +7,12 @@ const router = express.Router();
 
 router.post(
   "/",
-    // verifyToken,
-  (req, res, next) => {
-    // Hardcode the user for testing
-    req.user = { _id: "68a23177cf3e43f2f83df68c", name: "John Ali" };
-    next();
-  },
+    verifyToken,
+  // (req, res, next) => {
+  //   // Hardcode the user for testing
+  //   req.user = { _id: "68a23177cf3e43f2f83df68c", name: "John Ali" };
+  //   next();
+  // },
   validateReturnOrder,
   createReturnOrder
 );
