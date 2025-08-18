@@ -11,8 +11,10 @@ import authRoute from "./routes/auth.route.js";
 import userProfileRoute from "./routes/userProfile.route.js";
 import returnOrderRoute from "./routes/returnOrder.route.js";
 import receiptRoute from "./routes/reciept.route.js"
-import tracking from "./routes/tracking.route.js"
-import customer from "./routes/customer.route.js"
+import trackingRoute from "./routes/tracking.route.js"
+import customerRoute from "./routes/customer.route.js"
+import privacyRoute from "./routes/privacy.route.js"
+import feedbackRoute from "./routes/feedback.route.js";
 
 
 const app = express();
@@ -34,8 +36,11 @@ app.use('/api/auth', authRoute);
 app.use('/api/customer', userProfileRoute);
 app.use('/api/return-orders', returnOrderRoute);
 app.use("/api/receipts", receiptRoute);
-app.use("/api/tracking", tracking);
-app.use("/api/customer", customer);
+app.use("/api/tracking", trackingRoute);
+app.use("/api/customer", customerRoute);
+app.use("/api/customer", privacyRoute);
+app.use("/api/feedback", feedbackRoute);
+
 
 app.use(notFound);
 
