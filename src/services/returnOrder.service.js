@@ -79,6 +79,7 @@ export const transformOrderData = (data) => ({
     dimensions: pkg.dimensions,
     labelAttached: pkg.labelAttached,
     carrier: pkg.carrier,
+    price: pkg.price, 
   })),
   schedule: {
     date: new Date(data.schedule.date),
@@ -93,3 +94,4 @@ export const transformOrderData = (data) => ({
     currency: data.currency || "EUR",
   },
 });
+
