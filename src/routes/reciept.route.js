@@ -15,12 +15,6 @@ const router = express.Router();
 
 router.get("/", verifyToken, getReceipts);
 router.get("/:receiptId", verifyToken, receiptIdParamValidator, validate, getReceiptById);
-router.get(
-  "/:receiptId/download",
-  verifyToken,
-  receiptIdParamValidator,
-  validate,
-  downloadReceipt
-);
+router.get("/:receiptId/download", verifyToken, receiptIdParamValidator, validate, downloadReceipt);
 
 export default router;
