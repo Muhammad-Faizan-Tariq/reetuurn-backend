@@ -1,77 +1,88 @@
 import UserProfile from "../models/userProfile.model.js";
-// import AuthUser from "../models/authuser.model.js";
+
+
+const ensureProfile = async (user) => {
+  let profile = await UserProfile.findOne({ user: user._id });
+  if (!profile) {
+    profile = new UserProfile({
+      user: user._id,
+      firstName: "N/A",
+      lastName: "N/A",
+      gender: "other",
+      dob: new Date("1970-01-01"),
+      phones: [],
+      addresses: [],
+    });
+    await profile.save();
+  }
+  return profile;
+};
+
 
 export const getCustomerProfile = async (user) => {
-  const profile = await UserProfile.findOne({ user: user._id });
-
-  if (!profile) throw new Error("Profile not found");
-
-  return {
-    accountDetails: {
-      firstName: profile.firstName,
-      lastName: profile.lastName,
-      email: user.email,
-      phones: profile.phones,
-      dob: profile.dob,
-    },
-    addresses: profile.addresses,
-    preferences: {
-      gender: profile.gender,
-    },
-  };
+  return await ensureProfile(user);
 };
 
 export const updatePhoneNumbers = async (user, phones) => {
-  const profile = await UserProfile.findOne({ user: user._id });
+  let profile = await ensureProfile(user);
 
+  let primaryCount = phones.filter((p) => p.type === "primary").length;
+  if (primaryCount === 0) throw new Error("At least one primary phone required");
+  if (primaryCount > 1) throw new Error("Only one phone can be primary");
 
-  if (!phones.some((p) => p.type === "primary")) {
-    throw new Error("At least one primary phone required");
-  }
+  profile.phones = phones.map((p, i) => ({
+    ...p,
+    type: i === 0 ? "primary" : p.type || "secondary",
+  }));
 
-  profile.phones = phones;
+  profile.user = user; 
   await profile.save();
   return profile.phones;
 };
 
-export const updateAddresses = async (user, addresses) => {
-  const profile = await UserProfile.findOne({ user: user._id });
+export const addPhoneNumber = async (user, newPhone) => {
+  let profile = await ensureProfile(user);
 
-  if (!addresses.some((a) => a.isPrimary)) {
-    throw new Error("At least one primary address required");
+  if (!profile.phones || profile.phones.length === 0) {
+    newPhone.type = "primary";
+  } else {
+    newPhone.type = "secondary";
   }
 
-  profile.addresses = addresses;
+  profile.phones.push(newPhone);
+  profile.user = user;
+  await profile.save();
+  return profile.phones;
+};
+
+export const updateCustomerAddresses = async (user, addresses) => {
+  let profile = await ensureProfile(user);
+
+  let primaryCount = addresses.filter((a) => a.isPrimary).length;
+  if (primaryCount === 0) throw new Error("At least one primary address required");
+  if (primaryCount > 1) throw new Error("Only one address can be primary");
+
+  profile.addresses = addresses.map((a, i) => ({
+    ...a,
+    isPrimary: i === 0 ? true : a.isPrimary || false,
+  }));
+
+  profile.user = user;
   await profile.save();
   return profile.addresses;
 };
 
-export const addNewAddress = async (user, newAddress) => {
-  const profile = await UserProfile.findOne({ user: user._id });
+export const addCustomerAddress = async (user, newAddress) => {
+  let profile = await ensureProfile(user);
 
-  if (profile.addresses.length === 0) {
+  if (!profile.addresses || profile.addresses.length === 0) {
     newAddress.isPrimary = true;
+  } else {
+    newAddress.isPrimary = false;
   }
 
   profile.addresses.push(newAddress);
+  profile.user = user;
   await profile.save();
   return profile.addresses;
-};
-
-export const verifyPhoneNumber = async (user, phoneNumber, otp) => {
-
-  const profile = await UserProfile.findOne({ user: user._id });
-  const phone = profile.phones.find((p) => p.number === phoneNumber);
-
-  if (!phone) throw new Error("Phone number not found");
-
-
-  phone.isVerified = true;
-  await profile.save();
-
-  return {
-    number: phone.number,
-    type: phone.type,
-    isVerified: true,
-  };
 };
