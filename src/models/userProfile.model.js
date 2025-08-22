@@ -92,7 +92,7 @@ const userProfileSchema = new mongoose.Schema(
     },
     gender: {
       type: String,
-      enum: ["male", "female", "prefer not to say"],
+      enum: ["male", "female", "prefer not to say", "other"],
       required: true,
     },
   },
@@ -108,5 +108,6 @@ userProfileSchema.pre("save", function (next) {
   }
   next();
 });
+
 
 export default mongoose.model("UserProfile", userProfileSchema);
