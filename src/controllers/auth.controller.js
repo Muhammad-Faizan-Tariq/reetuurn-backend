@@ -1,5 +1,5 @@
 import AuthUser from "../models/authuser.model.js";
-import hashPassword from "../utils/hashPassword.util.js";
+// import hashPassword from "../utils/hashPassword.util.js";
 import generateOtp from "../utils/generateOtp.util.js";
 import sendOtpEmail from "../utils/sendOtpEmail.util.js";
 import { clearCookies, setCookies } from "../utils/setCookie.util.js";
@@ -72,10 +72,19 @@ export const resendOtp = async (req, res) => {
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-
-    const user = await AuthUser.findOne({ email });
+    // console.log("Login attempt:", email);
+    // console.log("login password:", password);
+    
+    const user = await AuthUser.findOne({ email }).select("+password");
     if (!user) return errorResponse(res, 404, "User not found");
+  
+    const isPasswordValid = await user.comparePassword(password);
+    if (!isPasswordValid) {
+      return errorResponse(res, 401, "Invalid email or password");
+    }
 
+    user.lastLogin = new Date();
+    await user.save();
 
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
@@ -168,7 +177,7 @@ export const resetPassword = async (req, res) => {
 
     // const hashedPassword = await hashPassword(newPassword);
 
-    // ✅ Update password and set flag
+    
     await updateUserPassword(user, newPassword);
 
     return successResponse(res, 200, "Password reset successfully");
