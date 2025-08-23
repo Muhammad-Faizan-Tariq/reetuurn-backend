@@ -53,7 +53,7 @@ export const createCustomer = async (req, res) => {
     }
 
  
-    const allowedGenders = ["male", "female", "prefer not to say"];
+    const allowedGenders = ["male", "female", "prefer not to say", "other"];
     if (!allowedGenders.includes(gender)) {
       return errorResponse(res, 400, `Gender must be one of: ${allowedGenders.join(", ")}`);
     }
