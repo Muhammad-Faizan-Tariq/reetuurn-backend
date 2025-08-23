@@ -69,39 +69,62 @@ export const resendOtp = async (req, res) => {
 };
 
 // 4. Login User
+// export const loginUser = async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+
+//     // const user = await AuthUser.findOne({ email });
+//     const user = await AuthUser.findOne({ email }).select("+password");
+
+//     if (!user || !user.isVerified) {
+//       return errorResponse(res, 401, "Invalid credentials or account not verified");
+//     }
+
+//     const isMatch = await user.comparePassword(password);
+//     if (!isMatch) {
+//       return errorResponse(res, 401, "Incorrect password");
+//     }
+
+//     const payload = { userId: user._id };
+//     const accessToken = generateAccessToken(payload);
+//     const refreshToken = generateRefreshToken(payload);
+
+//     setCookies(res, accessToken, refreshToken);
+
+//     return successResponse(res, 200, "Login successful", {
+//       user: {
+//         name: user.name,
+//         email: user.email
+//       },
+//       // token
+//       accessToken,
+//       refreshToken
+//     });
+//   } catch (error) {
+//     return errorResponse(res, 500, "Server error", error);
+//   }
+// };
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // const user = await AuthUser.findOne({ email });
-    const user = await AuthUser.findOne({ email }).select("+password");
+    const user = await AuthUser.findOne({ email });
+    if (!user) return errorResponse(res, 404, "User not found");
 
-    if (!user || !user.isVerified) {
-      return errorResponse(res, 401, "Invalid credentials or account not verified");
-    }
 
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      return errorResponse(res, 401, "Incorrect password");
-    }
-
-    const payload = { userId: user._id };
-    const accessToken = generateAccessToken(payload);
-    const refreshToken = generateRefreshToken(payload);
-
-    setCookies(res, accessToken, refreshToken);
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
 
     return successResponse(res, 200, "Login successful", {
       user: {
         name: user.name,
-        email: user.email
+        email: user.email,
       },
-      // token
       accessToken,
-      refreshToken
+      refreshToken,
     });
   } catch (error) {
-    return errorResponse(res, 500, "Server error", error);
+    return errorResponse(res, 500, "Server error", error.message);
   }
 };
 
