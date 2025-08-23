@@ -88,7 +88,7 @@ const userProfileSchema = new mongoose.Schema(
     addresses: [addressSchema],
     dob: {
       type: Date,
-      required: true,
+      required: false,
     },
     gender: {
       type: String,
