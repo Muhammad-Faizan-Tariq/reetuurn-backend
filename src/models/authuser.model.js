@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import validator from "validator";
 import crypto from "crypto";
 
-// OTP Subschema
+
 const otpSchema = new mongoose.Schema(
   {
     code: {
@@ -23,7 +23,7 @@ const otpSchema = new mongoose.Schema(
   { _id: false }
 );
 
-// Password History Subschema
+
 const passwordHistorySchema = new mongoose.Schema(
   {
     password: { type: String, required: true },
@@ -32,7 +32,7 @@ const passwordHistorySchema = new mongoose.Schema(
   { _id: false }
 );
 
-// Main AuthUser Schema
+
 const authUserSchema = new mongoose.Schema(
   {
     name: {
@@ -83,7 +83,6 @@ const authUserSchema = new mongoose.Schema(
   }
 );
 
-// 🔐 Hash password before saving
 authUserSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
 
@@ -94,6 +93,10 @@ authUserSchema.pre("save", async function (next) {
     this.passwordHistory = this.passwordHistory || [];
     this.passwordHistory.push({ password: hashed });
 
+    if (this.passwordHistory.length > 5) {
+      this.passwordHistory = this.passwordHistory.slice(-5);
+    }
+
     this.passwordChangedAt = Date.now() - 1000;
     next();
   } catch (err) {
@@ -101,12 +104,22 @@ authUserSchema.pre("save", async function (next) {
   }
 });
 
-// 🔍 Compare password
 authUserSchema.methods.comparePassword = async function (candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
+  try {
+
+    // console.log("Comparing:", candidatePassword);
+    // console.log("With hash:", this.password);
+    
+    const isMatch = await bcrypt.compare(candidatePassword, this.password);
+    // console.log("Match result:", isMatch);
+    
+    return isMatch;
+  } catch (error) {
+    // console.error("Compare error:", error);
+    return false;
+  }
 };
 
-// 🔄 Change password with history check
 authUserSchema.methods.changePassword = async function (
   currentPassword,
   newPassword
@@ -132,11 +145,10 @@ authUserSchema.methods.changePassword = async function (
   await this.save();
 };
 
-// 🔒 Login attempt logic
 authUserSchema.methods.incrementLoginAttempts = function () {
   this.failedLoginAttempts += 1;
   if (this.failedLoginAttempts >= 5) {
-    this.lockUntil = Date.now() + 30 * 60 * 1000; // 30 minutes
+    this.lockUntil = Date.now() + 30 * 60 * 1000; 
   }
   return this.save();
 };
@@ -147,18 +159,16 @@ authUserSchema.methods.resetLoginAttempts = function () {
   return this.save();
 };
 
-// 🔑 Create password reset token
 authUserSchema.methods.createPasswordResetToken = function () {
   const resetToken = crypto.randomBytes(32).toString("hex");
   this.passwordResetToken = crypto
     .createHash("sha256")
     .update(resetToken)
     .digest("hex");
-  this.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000; 
   return resetToken;
 };
 
-// 🧠 Virtual field for lock status
 authUserSchema.virtual("isLocked").get(function () {
   return this.lockUntil && this.lockUntil > Date.now();
 });
