@@ -12,7 +12,7 @@ export const submitFeedback = [
   validate,
   async (req, res) => {
     try {
-      const feedback = await createFeedback(req.user._id, req.body);
+      const feedback = await createFeedback(req.user, req.body);
       res.status(201).json({
         success: true,
         message: "Thank you for your feedback!",
@@ -34,7 +34,7 @@ export const submitFeedback = [
 
 export const getMyFeedback = async (req, res) => {
   try {
-    const feedback = await getUserFeedback(req.user._id);
+    const feedback = await getUserFeedback(req.user);
     res.json({
       success: true,
       data: feedback,
