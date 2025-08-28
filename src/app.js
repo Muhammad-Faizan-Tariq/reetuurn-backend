@@ -8,14 +8,6 @@ import { notFound } from "./middlewares/not-found.middleware.js";
 
 
 import authRoute from "./routes/auth.route.js";
-import userProfileRoute from "./routes/userProfile.route.js";
-import returnOrderRoute from "./routes/returnOrder.route.js";
-import receiptRoute from "./routes/reciept.route.js"
-import trackingRoute from "./routes/tracking.route.js"
-import customerRoute from "./routes/customer.route.js"
-import privacyRoute from "./routes/privacy.route.js"
-import feedbackRoute from "./routes/feedback.route.js";
-
 
 const app = express();
 
@@ -32,16 +24,11 @@ app.get('/', (req, res) => {
 
 
 // Mounting the routes
-app.use('/api/auth', authRoute);
-app.use('/api/customer', userProfileRoute);
-app.use('/api/create-return-order', returnOrderRoute);
-app.use("/api/receipts", receiptRoute);
-app.use("/api/tracking", trackingRoute);
-app.use("/api/customer", customerRoute);
-app.use("/api/customer", privacyRoute);
-app.use("/api/feedback", feedbackRoute);
+app.use('/api/auth',authRoute)
 
 
-app.use(notFound);
+
+
+app.use(notFound)
 
 export default app;

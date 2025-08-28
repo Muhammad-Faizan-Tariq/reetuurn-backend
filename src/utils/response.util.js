@@ -13,7 +13,3 @@ export const errorResponse = (res, statusCode, message, error = null) => {
     error: error ? error.toString() : undefined
   });
 };
-
-
-
-
