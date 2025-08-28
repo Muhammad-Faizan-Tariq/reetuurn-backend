@@ -94,3 +94,42 @@ const buildStatusUpdate = (statusData) => {
 
   return { $set: statusUpdate };
 };
+
+export const cancelTracking = async (orderIdentifier, cancelData) => {
+  try {
+    const update = {
+      $set: {
+        status: "cancelled",
+        cancelledAt: cancelData.date || new Date(),
+        cancelReason: cancelData.notes || "No reason provided",
+        updatedAt: new Date(),
+      },
+      $push: {
+        statusHistory: {
+          status: "cancelled",
+          changedAt: cancelData.date || new Date(),
+          ...(cancelData.notes && { notes: cancelData.notes }),
+        },
+      },
+    };
+
+    const order = await ReturnOrder.findOneAndUpdate(
+      {
+        $or: [
+          { "metadata.orderNumber": orderIdentifier },
+          { _id: orderIdentifier },
+        ],
+      },
+      update,
+      { new: true }
+    ).populate("user", "name email");
+
+    if (!order) {
+      throw new Error("Order not found");
+    }
+
+    return formatTrackingResponse(order);
+  } catch (error) {
+    throw error;
+  }
+};
