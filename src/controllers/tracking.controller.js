@@ -2,8 +2,11 @@ import {
   getOrderTracking,
   getUserTrackings,
   updateTrackingStatus,
+  cancelTracking
 } from "../services/tracking.service.js";
 import { handleControllerError } from "../utils/controller.util.js";
+
+
 
 export const trackOrder = async (req, res) => {
   try {
@@ -42,6 +45,24 @@ export const updateStatus = async (req, res) => {
     });
     res.json({
       success: true,
+      data: tracking,
+    });
+  } catch (error) {
+    handleControllerError(res, error);
+  }
+};
+
+
+export const cancelPickup = async (req, res) => {
+  try {
+    const tracking = await cancelTracking(req.user._id, req.params.orderNumber, {
+      date: req.body.date,
+      notes: req.body.reason || req.body.notes,
+    });
+
+    res.json({
+      success: true,
+      message: "Pickup cancelled successfully",
       data: tracking,
     });
   } catch (error) {

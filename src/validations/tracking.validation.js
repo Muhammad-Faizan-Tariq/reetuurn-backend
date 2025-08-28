@@ -1,5 +1,5 @@
 
-import { check, validationResult } from "express-validator";
+import { param, check,  body, validationResult } from "express-validator";
 
 export const trackOrderValidator = [
   check("orderNumber")
@@ -64,6 +64,20 @@ export const updateStatusValidator = [
     .trim(),
 ];
 
+export const cancelPickupValidator = [
+  param("orderNumber")
+    .notEmpty().withMessage("Order number is required")
+    .isString().withMessage("Order number must be a string").trim(),
+
+  body("date")
+    .optional()
+    .isISO8601().withMessage("Invalid date format").toDate(),
+
+  body("reason")
+    .notEmpty().withMessage("Cancellation reason is required")
+    .isString().withMessage("Reason must be a string").trim(),
+];
+
 export const validate = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -75,3 +89,8 @@ export const validate = (req, res, next) => {
   }
   next();
 };
+
+
+
+
+
