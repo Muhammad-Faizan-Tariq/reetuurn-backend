@@ -1,21 +1,20 @@
 #!/bin/bash
-# deploy.sh - Deployment script for reetuurn backend
 
-echo "Starting deployment..."
+echo "🚀 Starting deployment..."
 
-# Navigate to your app directory
-cd reetuurn-backend || exit
-
-# Pull latest code
-echo "Pulling latest code from GitHub..."
-git pull origin main
+# Stop on first error
+set -e  
 
 # Install dependencies
-echo "Installing dependencies..."
+echo "📦 Installing dependencies..."
 npm install --production
 
-# Restart app with PM2
-echo "Restarting server..."
-pm2 restart all
+# Build project
+echo "🏗️ Building project..."
+npm run build
 
-echo "Deployment finished!"
+# Restart PM2 (or start if not already running)
+echo "🔄 Restarting PM2..."
+pm2 restart reetuurn-backend || pm2 start npm --name "reetuurn-backend" -- run start
+
+echo "✅ Deployment completed successfully!"
