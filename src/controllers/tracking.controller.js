@@ -48,3 +48,20 @@ export const updateStatus = async (req, res) => {
     handleControllerError(res, error);
   }
 };
+
+export const cancelPickup = async (req, res) => {
+  try {
+    const tracking = await cancelTracking(req.params.orderNumber, {
+      date: req.body.date,
+      notes: req.body.reason,
+    });
+
+    res.json({
+      success: true,
+      message: "Pickup cancelled successfully",
+      data: tracking,
+    });
+  } catch (error) {
+    handleControllerError(res, error);
+  }
+};
