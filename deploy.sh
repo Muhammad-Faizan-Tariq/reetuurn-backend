@@ -1,5 +1,5 @@
 #!/bin/bash
-# deploy.sh - Deployment script for Express backend
+# deploy.sh - Deployment script for reetuurn backend
 
 echo "Starting deployment..."
 
