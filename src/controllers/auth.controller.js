@@ -1,5 +1,5 @@
 import AuthUser from "../models/authuser.model.js";
-import hashPassword from "../utils/hashPassword.util.js";
+// import hashPassword from "../utils/hashPassword.util.js";
 import generateOtp from "../utils/generateOtp.util.js";
 import sendOtpEmail from "../utils/sendOtpEmail.util.js";
 import { clearCookies, setCookies } from "../utils/setCookie.util.js";
@@ -9,44 +9,12 @@ import { successResponse, errorResponse } from "../utils/response.util.js";
 
 
 import {
-  findUserByEmailOrUsername,
-  createUser,
-  findUserByEmail,
   updateUserOtp,
   verifyAndUpdateUser,
   updateUserPassword
 } from "../services/auth.service.js";
 
-// 1. Register User
-export const registerUser = async (req, res) => {
-  try {
-    const { name, username, email, password } = req.body;
 
-    const userExists = await findUserByEmailOrUsername(email, username);
-    if (userExists) {
-      return errorResponse(res, 400, "Email or username already registered");
-    }
-
-
-    const otpCode = generateOtp();
-    const otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
-
-    const user = await createUser({
-      name,
-      username,
-      email,
-      password,
-      isPasswordSet: true,
-      otp: { code: otpCode, expiry: otpExpiry }
-    });
-
-    await sendOtpEmail(email, name, otpCode);
-
-    return successResponse(res, 201, "User registered. OTP sent to your email.");
-  } catch (error) {
-    return errorResponse(res, 500, "Server error", error);
-  }
-};
 
 // 2. Verify OTP
 export const verifyOtp = async (req, res) => {
@@ -89,7 +57,12 @@ export const resendOtp = async (req, res) => {
     await updateUserOtp(user, otpCode, otpExpiry);
     await sendOtpEmail(email, user.name, otpCode);
 
-    return successResponse(res, 200, "New OTP sent to your email.");
+    return successResponse(
+      res,
+      200,
+      "OTP resent successfully. Check your email.",
+      { otp: otpCode }
+     );
   } catch (error) {
     return errorResponse(res, 500, "Server error", error);
   }
@@ -99,31 +72,33 @@ export const resendOtp = async (req, res) => {
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-
-    const user = await AuthUser.findOne({ email });
-    if (!user || !user.isVerified) {
-      return errorResponse(res, 401, "Invalid credentials or account not verified");
+    // console.log("Login attempt:", email);
+    // console.log("login password:", password);
+    
+    const user = await AuthUser.findOne({ email }).select("+password");
+    if (!user) return errorResponse(res, 404, "User not found");
+  
+    const isPasswordValid = await user.comparePassword(password);
+    if (!isPasswordValid) {
+      return errorResponse(res, 401, "Invalid email or password");
     }
 
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      return errorResponse(res, 401, "Incorrect password");
-    }
+    user.lastLogin = new Date();
+    await user.save();
 
-    const payload = { userId: user._id };
-    const accessToken = generateAccessToken(payload);
-    const refreshToken = generateRefreshToken(payload);
-
-    setCookies(res, accessToken, refreshToken);
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
 
     return successResponse(res, 200, "Login successful", {
       user: {
         name: user.name,
-        email: user.email
-      }
+        email: user.email,
+      },
+      accessToken,
+      refreshToken,
     });
   } catch (error) {
-    return errorResponse(res, 500, "Server error", error);
+    return errorResponse(res, 500, "Server error", error.message);
   }
 };
 
@@ -144,6 +119,7 @@ export const forgetPassword = async (req, res) => {
     const { email } = req.body;
 
     const user = await AuthUser.findOne({ email });
+    
     if (!user) {
       return errorResponse(res, 404, "User not found");
     }
@@ -156,7 +132,12 @@ export const forgetPassword = async (req, res) => {
 
     await sendOtpEmail(email, user.name, otpCode);
 
-    return successResponse(res, 200, "OTP sent for password reset");
+    return successResponse(
+      res,
+      200,
+      "OTP sent to email for password reset. Check your inbox.",
+      { otp: otpCode }
+    );
   } catch (error) {
     return errorResponse(res, 500, "Server error", error);
   }
@@ -194,10 +175,10 @@ export const resetPassword = async (req, res) => {
       return errorResponse(res, 404, "User not found");
     }
 
-    const hashedPassword = await hashPassword(newPassword);
+    // const hashedPassword = await hashPassword(newPassword);
 
-    // ✅ Update password and set flag
-    await updateUserPassword(user, hashedPassword);
+    
+    await updateUserPassword(user, newPassword);
 
     return successResponse(res, 200, "Password reset successfully");
   } catch (error) {

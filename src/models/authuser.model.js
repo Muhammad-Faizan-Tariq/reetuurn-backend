@@ -1,64 +1,176 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
+import validator from "validator";
+import crypto from "crypto";
 
 
-const otpSchema = new mongoose.Schema({
-  code: String,
-  expiry: Date,
-}, { _id: false });
+const otpSchema = new mongoose.Schema(
+  {
+    code: {
+      type: String,
+      minlength: 6,
+      maxlength: 6,
+    },
+    expiry: {
+      type: Date,
+      default: null,
+    },
+    purpose: {
+      type: String,
+      enum: ["verification", "passwordReset", "phoneVerification"],
+    },
+  },
+  { _id: false }
+);
 
 
-const authUserSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: [true, "Name is required"],
-    minlength: [3, "Name must be at least 3 characters"],
-    maxlength: [50, "Name must not exceed 50 characters"]
+const passwordHistorySchema = new mongoose.Schema(
+  {
+    password: { type: String, required: true },
+    changedAt: { type: Date, default: Date.now },
   },
-  username: {
-    type: String,
-    required: [true, "Username is required"],
-    unique: true,
-    minlength: [3, "Username must be at least 3 characters"],
-    maxlength: [30, "Username must not exceed 30 characters"]
+  { _id: false }
+);
+
+
+const authUserSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: [true, "Name is required"],
+      trim: true,
+      minlength: [3, "Name must be at least 3 characters"],
+      maxlength: [50, "Name must not exceed 50 characters"],
+      match: [/^[a-zA-Z ]+$/, "Name can only contain letters and spaces"],
+    },
+    email: {
+      type: String,
+      required: [true, "Email is required"],
+      unique: true,
+      trim: true,
+      lowercase: true,
+      validate: {
+        validator: validator.isEmail,
+        message: "Please provide a valid email",
+      },
+    },
+    password: {
+      type: String,
+      required: [true, "Password is required"],
+      minlength: [8, "Password must be at least 8 characters"],
+      select: false,
+    },
+    passwordHistory: [passwordHistorySchema],
+    passwordChangedAt: Date,
+    passwordResetToken: { type: String, select: false },
+    passwordResetExpires: { type: Date, select: false },
+    userType: {
+      type: String,
+      enum: ["customer", "driver", "admin"],
+      default: "customer",
+    },
+    otp: { type: otpSchema, default: {} },
+    isVerified: { type: Boolean, default: false },
+    isActive: { type: Boolean, default: true },
+    lastLogin: Date,
+    failedLoginAttempts: { type: Number, default: 0 },
+    lockUntil: Date,
   },
-  email: {
-    type: String,
-    required: [true, "Email is required"],
-    unique: true,
-    match: [/\S+@\S+\.\S+/, "Email is invalid"]
-  },
-  password: {
-    type: String,
-    required: [true, "Password is required"],
-    minlength: [6, "Password must be at least 6 characters"]
-  },
-  userType: {
-    type: String,
-    enum: ["customer", "driver"],
-  },
-  otp: otpSchema,
-  isVerified: {
-    type: Boolean,
-    default: false
-  },
-  isPasswordSet: {
-    type: Boolean,
-    default: false
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   }
-}, { timestamps: true });
-
-
+);
 
 authUserSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next(); 
-  this.password = await bcrypt.hash(this.password, 10);
-  next();
+  if (!this.isModified("password")) return next();
+
+  try {
+    const hashed = await bcrypt.hash(this.password, 12);
+    this.password = hashed;
+
+    this.passwordHistory = this.passwordHistory || [];
+    this.passwordHistory.push({ password: hashed });
+
+    if (this.passwordHistory.length > 5) {
+      this.passwordHistory = this.passwordHistory.slice(-5);
+    }
+
+    this.passwordChangedAt = Date.now() - 1000;
+    next();
+  } catch (err) {
+    next(err);
+  }
 });
 
+authUserSchema.methods.comparePassword = async function (candidatePassword) {
+  try {
 
-authUserSchema.methods.comparePassword = async function (plainPassword) {
-  return await bcrypt.compare(plainPassword, this.password);
+    // console.log("Comparing:", candidatePassword);
+    // console.log("With hash:", this.password);
+    
+    const isMatch = await bcrypt.compare(candidatePassword, this.password);
+    // console.log("Match result:", isMatch);
+    
+    return isMatch;
+  } catch (error) {
+    // console.error("Compare error:", error);
+    return false;
+  }
 };
+
+authUserSchema.methods.changePassword = async function (
+  currentPassword,
+  newPassword
+) {
+  const isMatch = await this.comparePassword(currentPassword);
+  if (!isMatch) throw new Error("Current password is incorrect");
+
+  if (newPassword.length < 8) {
+    throw new Error("Password must be at least 8 characters");
+  }
+
+  const usedBefore = await Promise.any(
+    this.passwordHistory.map((record) =>
+      bcrypt.compare(newPassword, record.password)
+    )
+  ).catch(() => false);
+
+  if (usedBefore) {
+    throw new Error("Cannot reuse previous passwords");
+  }
+
+  this.password = newPassword;
+  await this.save();
+};
+
+authUserSchema.methods.incrementLoginAttempts = function () {
+  this.failedLoginAttempts += 1;
+  if (this.failedLoginAttempts >= 5) {
+    this.lockUntil = Date.now() + 30 * 60 * 1000; 
+  }
+  return this.save();
+};
+
+authUserSchema.methods.resetLoginAttempts = function () {
+  this.failedLoginAttempts = 0;
+  this.lockUntil = undefined;
+  return this.save();
+};
+
+authUserSchema.methods.createPasswordResetToken = function () {
+  const resetToken = crypto.randomBytes(32).toString("hex");
+  this.passwordResetToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000; 
+  return resetToken;
+};
+
+authUserSchema.virtual("isLocked").get(function () {
+  return this.lockUntil && this.lockUntil > Date.now();
+});
 
 export default mongoose.model("AuthUser", authUserSchema);
