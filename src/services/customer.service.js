@@ -2,7 +2,7 @@ import UserProfile from "../models/userProfile.model.js";
 
 
 const ensureProfile = async (user) => {
-  let profile = await UserProfile.findOne({ user: user._id });
+  let profile = await UserProfile.findOne({ user: user._id }).populate("user", "email");
   if (!profile) {
     profile = new UserProfile({
       user: user._id,
@@ -35,7 +35,7 @@ export const updatePhoneNumbers = async (user, phones) => {
     type: i === 0 ? "primary" : p.type || "secondary",
   }));
 
-  profile.user = user; 
+  profile.user = user;
   await profile.save();
   return profile.phones;
 };
