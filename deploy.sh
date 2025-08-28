@@ -13,6 +13,6 @@ npm install --production
 
 
 # Restart the app with PM2
-pm2 restart reetuurn-backend || pm2 start npm --name "reetuurn-backend" -- run start
+pm2 restart reetuurn-backend || pm2 start npm --name "reetuurn-backend" -- run dev
 
 echo "Deployment finished!"
