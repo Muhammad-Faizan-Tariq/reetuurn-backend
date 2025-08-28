@@ -1,17 +1,18 @@
 #!/bin/bash
+echo "Starting deployment..."
 
-echo "🚀 Starting deployment..."
+# Go to project root (current directory)
+cd "$(dirname "$0")"
 
-# Stop on first error
-set -e  
+# Reset any local changes and pull the latest code
+git reset --hard
+git pull origin main
 
 # Install dependencies
-echo "📦 Installing dependencies..."
 npm install --production
 
 
-# Restart PM2 (or start if not already running)
-echo "🔄 Restarting PM2..."
+# Restart the app with PM2
 pm2 restart reetuurn-backend || pm2 start npm --name "reetuurn-backend" -- run start
 
-echo "✅ Deployment completed successfully!"
+echo "Deployment finished!"
