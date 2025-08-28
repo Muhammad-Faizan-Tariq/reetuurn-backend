@@ -9,9 +9,6 @@ set -e
 echo "📦 Installing dependencies..."
 npm install --production
 
-# Build project
-echo "🏗️ Building project..."
-npm run build
 
 # Restart PM2 (or start if not already running)
 echo "🔄 Restarting PM2..."
