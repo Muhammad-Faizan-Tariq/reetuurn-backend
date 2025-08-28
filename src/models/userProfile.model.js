@@ -36,11 +36,11 @@ const addressSchema = new mongoose.Schema(
     },
     city: {
       type: String,
-      required: true,
+      required: false,
     },
     state: {
       type: String,
-      required: true,
+      required: false,
     },
     zipCode: {
       type: String,
