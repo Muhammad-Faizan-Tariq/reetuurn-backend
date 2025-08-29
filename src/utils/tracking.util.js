@@ -44,7 +44,6 @@ export const formatTrackingResponse = (order) => {
   };
 };
 
-
 const getCurrentStatusDisplay = (status) => {
   const statusMap = {
     draft: "Draft",
@@ -56,3 +55,23 @@ const getCurrentStatusDisplay = (status) => {
   };
   return statusMap[status] || status;
 };
+
+
+const formatDisplayDate = (date) => {
+  if (!date) return null;
+  const d = new Date(date);
+  return d.toISOString().split("T")[0]; 
+};
+
+
+// const getCurrentStatusDisplay = (status) => {
+//   const statusMap = {
+//     draft: "Draft",
+//     pending: "Pending Approval",
+//     scheduled: "Planned Pickup",
+//     picked_up: "Picked Up",
+//     returned: "Return Completed",
+//     cancelled: "Cancelled",
+//   };
+//   return statusMap[status] || status;
+// };
