@@ -1,15 +1,14 @@
 import UserProfile from "../models/userProfile.model.js";
 
-
 const ensureProfile = async (user) => {
-  let profile = await UserProfile.findOne({ user: user._id }).populate("user", "email");
+  let profile = await UserProfile.findOne({ user: user._id });
   if (!profile) {
     profile = new UserProfile({
       user: user._id,
-      firstName: "N/A",
-      lastName: "N/A",
-      gender: "other",
-      dob: new Date("1970-01-01"),
+      firstName: user.firstName || user.name?.split(" ")[0] || "",
+      lastName: user.lastName || user.name?.split(" ")[1] || "",
+      gender: user.gender || "other",   
+      dob: user.dob || new Date("1970-01-01"),
       phones: [],
       addresses: [],
     });
@@ -20,7 +19,21 @@ const ensureProfile = async (user) => {
 
 
 export const getCustomerProfile = async (user) => {
-  return await ensureProfile(user);
+  const profile = await ensureProfile(user);
+
+  return {
+    accountDetails: {
+      firstName: profile.firstName,
+      lastName: profile.lastName,
+      email: user.email,
+      phones: profile.phones,
+      dob: profile.dob,
+    },
+    addresses: profile.addresses,
+    preferences: {
+      gender: profile.gender,
+    },
+  };
 };
 
 export const updatePhoneNumbers = async (user, phones) => {
