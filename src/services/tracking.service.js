@@ -150,12 +150,12 @@ order.statusHistory.push({
 });
 
 await order.save();
-// return formatTrackingResponse(order);
+return formatTrackingResponse(order);
 
-  return {
-    success: true,
-    message: "Pickup cancelled successfully",
-    data: formatTrackingResponse(order),
-  };
+  // return {
+  //   success: true,
+  //   message: "Pickup cancelled successfully",
+  //   data: formatTrackingResponse(order),
+  // };
 };
 
