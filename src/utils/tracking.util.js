@@ -9,8 +9,8 @@ export const formatTrackingResponse = (order) => {
   const currentStatus = getCurrentStatusDisplay(order.status);
 
   return {
-    orderNumber: order.metadata.orderNumber,
-    trackingNumber: order.metadata.trackingNumber,
+    orderNumber: order.metadata?.orderNumber ?? order.orderNumber ?? null,
+    trackingNumber: order.metadata?.trackingNumber ?? order.trackingNumber ?? null,
     packages: order.packages.map((pkg) => ({
       size: pkg.size,
       carrier: pkg.carrier,
@@ -20,27 +20,17 @@ export const formatTrackingResponse = (order) => {
     status: {
       current: currentStatus,
       planned: statusHistory.planned
-        ? {
-            date: formatDisplayDate(order.schedule.date),
-            timeWindow: order.schedule.timeWindow,
-          }
+        ? { date: order.schedule.date, timeWindow: order.schedule.timeWindow }
         : null,
-      pickedUp: statusHistory.picked_up
-        ? { date: formatDisplayDate(statusHistory.picked_up.changedAt) }
-        : null,
-      returned: statusHistory.returned
-        ? { date: formatDisplayDate(statusHistory.returned.changedAt) }
-        : null,
+      pickedUp: statusHistory.picked_up ? { date: statusHistory.picked_up.changedAt } : null,
+      returned: statusHistory.returned ? { date: statusHistory.returned.changedAt } : null,
       cancelled: statusHistory.cancelled
-        ? {
-            date: formatDisplayDate(statusHistory.cancelled.changedAt),
-            reason: statusHistory.cancelled.notes,
-          }
+        ? { date: statusHistory.cancelled.changedAt, reason: statusHistory.cancelled.notes }
         : null,
     },
     pickupAddress: order.formattedAddress,
-    createdAt: formatDisplayDate(order.createdAt),
-    updatedAt: formatDisplayDate(order.updatedAt),
+    createdAt: order.createdAt,
+    updatedAt: order.updatedAt,
   };
 };
 
@@ -56,13 +46,20 @@ const getCurrentStatusDisplay = (status) => {
   return statusMap[status] || status;
 };
 
-
-const formatDisplayDate = (date) => {
-  if (!date) return null;
-  const d = new Date(date);
-  return d.toISOString().split("T")[0]; 
+export const calculateTotalPrice = (packages) => {
+  return packages.reduce((total, pkg) => total + (pkg.price || 0), 0);
 };
 
+export const formatDisplayDate = (date) => {
+  if (!date) return null;
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
 
 // const getCurrentStatusDisplay = (status) => {
 //   const statusMap = {
