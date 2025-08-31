@@ -12,7 +12,7 @@ This document explains the new payment flow for creating return orders with Stri
 
 ### 1. Create Payment Intent
 ```
-POST /api/return-orders/payment-intent
+POST /api/create-return-order/payment-intent
 Authorization: Bearer <token>
 Content-Type: application/json
 
@@ -46,7 +46,7 @@ Content-Type: application/json
 
 ### 2. Confirm Payment & Create Order
 ```
-POST /api/return-orders/confirm-payment
+POST /api/create-return-order/confirm-payment
 Authorization: Bearer <token>
 Content-Type: application/json
 

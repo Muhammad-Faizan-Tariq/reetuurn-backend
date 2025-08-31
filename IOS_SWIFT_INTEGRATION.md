@@ -70,7 +70,7 @@ class ReturnOrderService {
     
     // MARK: - Create Payment Intent
     func createPaymentIntent(packages: [Package], paymentMethod: String, currency: String = "EUR") async throws -> PaymentIntentResponse {
-        let url = URL(string: "\(baseURL)/return-orders/payment-intent")!
+        let url = URL(string: "\(baseURL)/create-return-order/payment-intent")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
@@ -97,7 +97,7 @@ class ReturnOrderService {
     
     // MARK: - Confirm Payment and Create Order
     func confirmPaymentAndCreateOrder(paymentIntentId: String, orderData: OrderData) async throws -> OrderResponse {
-        let url = URL(string: "\(baseURL)/return-orders/confirm-payment")!
+        let url = URL(string: "\(baseURL)/create-return-order/confirm-payment")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
