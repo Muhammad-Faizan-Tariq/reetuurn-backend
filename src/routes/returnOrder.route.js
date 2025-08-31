@@ -1,7 +1,7 @@
 import express from "express";
 import {
-  createPaymentIntent,
-  confirmPaymentAndCreateOrder,
+  createPaymentIntents,
+  confirmPaymentAndCreateOrders,
   listPaymentOptions,
   updateStatus,
   handleStripeWebhook
@@ -19,7 +19,7 @@ router.post(
   "/payment-intent",
   verifyToken,
   validatePaymentIntent,
-  createPaymentIntent
+  createPaymentIntents
 );
 
 // Confirm payment and create order
@@ -27,7 +27,7 @@ router.post(
   "/confirm-payment",
   verifyToken,
   validateConfirmPayment,
-  confirmPaymentAndCreateOrder
+  confirmPaymentAndCreateOrders
 );
 
 // Get payment options

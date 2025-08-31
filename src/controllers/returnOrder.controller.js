@@ -14,7 +14,7 @@ import stripe from "../services/stripe.service.js";
 import ReturnReceipt from "../models/receipt.model.js";
 
 // Create payment intent first
-export const createPaymentIntent = async (req, res) => {
+export const createPaymentIntents = async (req, res) => {
   try {
     if (!req.user || !req.user._id) {
       return res
@@ -54,7 +54,7 @@ export const createPaymentIntent = async (req, res) => {
 };
 
 // Confirm payment and create order
-export const confirmPaymentAndCreateOrder = async (req, res) => {
+export const confirmPaymentAndCreateOrders = async (req, res) => {
   try {
     if (!req.user || !req.user._id) {
       return res
