@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const packageSchema = new mongoose.Schema(
   {
-    size: { type: String, enum: ["small", "medium", "large"], required: true },
+    size: { type: String, enum: ["small", "medium", "large", "xlarge"], required: true },
     dimensions: {
       type: String,
       required: [true, "Dimensions are required"],
