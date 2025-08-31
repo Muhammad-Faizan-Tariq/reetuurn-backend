@@ -44,26 +44,7 @@ Content-Type: application/json
 }
 ```
 
-### 2. Complete Payment (Frontend)
-```javascript
-// Using Stripe.js
-const { error } = await stripe.confirmCardPayment(clientSecret, {
-  payment_method: {
-    card: elements.getElement('card'),
-    billing_details: {
-      name: 'Customer Name',
-    },
-  }
-});
-
-if (error) {
-  // Handle error
-} else {
-  // Payment successful, proceed to confirm
-}
-```
-
-### 3. Confirm Payment & Create Order
+### 2. Confirm Payment & Create Order
 ```
 POST /api/return-orders/confirm-payment
 Authorization: Bearer <token>
@@ -138,65 +119,3 @@ Content-Type: application/json
 - `stripe_google_pay` - Google Pay
 - `paypal` - PayPal
 
-## Security Features
-
-1. **Payment Verification**: Backend verifies payment intent status before creating order
-2. **Amount Validation**: Amount is calculated server-side and verified against payment intent
-3. **User Authentication**: All endpoints require valid JWT token
-4. **Input Validation**: Comprehensive validation for all input data
-
-## Error Handling
-
-- Invalid payment intent status
-- Payment amount mismatch
-- Validation errors
-- Database errors
-- Stripe API errors
-
-## Frontend Integration Example
-
-```javascript
-// Step 1: Create payment intent
-const paymentIntentResponse = await fetch('/api/return-orders/payment-intent', {
-  method: 'POST',
-  headers: {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    packages: orderData.packages,
-    paymentMethod: 'stripe_card',
-    currency: 'EUR'
-  })
-});
-
-const { data: { clientSecret } } = await paymentIntentResponse.json();
-
-// Step 2: Complete payment with Stripe
-const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-  payment_method: {
-    card: cardElement,
-    billing_details: { name: customerName }
-  }
-});
-
-if (error) {
-  console.error('Payment failed:', error);
-} else {
-  // Step 3: Confirm payment and create order
-  const orderResponse = await fetch('/api/return-orders/confirm-payment', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      paymentIntentId: paymentIntent.id,
-      orderData: orderData
-    })
-  });
-
-  const result = await orderResponse.json();
-  console.log('Order created:', result);
-}
-```
