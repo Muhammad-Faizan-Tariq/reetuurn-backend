@@ -78,6 +78,7 @@ const returnOrderSchema = new mongoose.Schema(
       currency: { type: String, default: "EUR" },
       status: { type: String, default: "pending" },
       paidAt: Date,
+      stripePaymentIntentId: { type: String, index: true },
     },
     status: {
       type: String,

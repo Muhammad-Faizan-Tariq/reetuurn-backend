@@ -1,6 +1,77 @@
 import ReturnOrder from "../models/return-order.model.js";
 import { processPayment } from "./payment.service.js";
 import { validateOrderData } from "../utils/validation.util.js";
+import stripe from "./stripe.service.js";
+
+// Calculate total amount based on packages
+const calculateOrderAmount = (packages) => {
+  const prices = { small: 4.99, medium: 6.99, large: 8.99, xlarge: 10.99 };
+  return packages.reduce((sum, pkg) => sum + (pkg.price || prices[pkg.size] || 0), 0);
+};
+
+// Create payment intent with Stripe
+export const createPaymentIntent = async (packages, paymentMethod, currency = "EUR") => {
+  const amount = calculateOrderAmount(packages);
+  const amountInCents = Math.round(amount * 100);
+
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: amountInCents,
+    currency: currency.toLowerCase(),
+    payment_method_types: paymentMethod.startsWith('stripe_') ? ['card'] : ['card'],
+    metadata: {
+      packages: JSON.stringify(packages),
+      paymentMethod: paymentMethod,
+    },
+  });
+
+  return paymentIntent;
+};
+
+// Confirm payment and create order
+export const confirmPaymentAndCreateOrder = async (userId, paymentIntentId, orderData) => {
+  // Verify payment intent status
+  const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+  if (paymentIntent.status !== 'succeeded') {
+    throw new Error(`Payment not completed. Status: ${paymentIntent.status}`);
+  }
+
+  // Validate order data
+  validateOrderData(orderData);
+
+  // Create order with confirmed payment
+  let order;
+  let retries = 3;
+
+  while (retries > 0) {
+    try {
+      order = await ReturnOrder.create({
+        user: userId,
+        ...transformOrderData(orderData),
+        status: "pending",
+        payment: {
+          method: orderData.paymentMethod,
+          amount: paymentIntent.amount / 100, // Convert from cents
+          currency: paymentIntent.currency.toUpperCase(),
+          status: "completed",
+          paidAt: new Date(),
+          stripePaymentIntentId: paymentIntentId,
+        },
+      });
+      break;
+    } catch (error) {
+      if (error.code === 11000 && error.keyPattern?.["metadata.orderNumber"]) {
+        retries--;
+        if (retries === 0)
+          throw new Error("Failed to generate unique order number");
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  return { order };
+};
 
 export const handleReturnOrder = async (user, orderData) => {
   validateOrderData(orderData);
@@ -29,12 +100,12 @@ export const handleReturnOrder = async (user, orderData) => {
 
   const payment = await processPayment(order, orderData.paymentMethod);
 
-if (!order.payment) order.payment = {};
-order.payment.method =
-  payment.method || orderData.paymentMethod?.split("_")[0] || "unknown";
-order.payment.type = payment.type || orderData.paymentMethod;
-order.payment.currency = payment.currency || orderData.currency || "EUR";
-order.payment.status = payment.status || "pending";
+  if (!order.payment) order.payment = {};
+  order.payment.method =
+    payment.method || orderData.paymentMethod?.split("_")[0] || "unknown";
+  order.payment.type = payment.type || orderData.paymentMethod;
+  order.payment.currency = payment.currency || orderData.currency || "EUR";
+  order.payment.status = payment.status || "pending";
 
 
   await order.save();
@@ -79,7 +150,7 @@ export const transformOrderData = (data) => ({
     dimensions: pkg.dimensions,
     labelAttached: pkg.labelAttached,
     carrier: pkg.carrier,
-    price: pkg.price, 
+    price: pkg.price,
   })),
   schedule: {
     date: new Date(data.schedule.date),
