@@ -186,3 +186,20 @@ export const resetPassword = async (req, res) => {
   }
 };
 
+
+// 9. email validation cehck 
+export const checkEmailExists = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await AuthUser.findOne({ email });
+
+    if (user) {
+      return successResponse(res, 200, "Email already exists", { exists: true });
+    } else {
+      return successResponse(res, 200, "Email is available", { exists: false });
+    }
+  } catch (error) {
+    return errorResponse(res, 500, "Server error while checking email", error);
+  }
+};
