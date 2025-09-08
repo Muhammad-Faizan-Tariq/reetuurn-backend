@@ -6,7 +6,8 @@ import {
   logoutUser,
   forgetPassword,
   verifyResetOtp,
-  resetPassword
+  resetPassword,
+  checkEmailExists
 } from "../controllers/auth.controller.js";
 
 import {
@@ -14,7 +15,7 @@ import {
   otpValidator,
   emailOnlyValidator,
   resetPasswordValidator,
-  validate
+  validate,
 } from "../validations/auth.validation.js";
 
 const router = express.Router();
@@ -26,5 +27,6 @@ router.post("/logout", logoutUser);
 router.post("/forget-password", emailOnlyValidator, validate, forgetPassword);
 router.post("/verify-reset-otp", otpValidator, validate, verifyResetOtp);
 router.post("/reset-password", resetPasswordValidator, validate, resetPassword);
+router.post("/check-email", emailOnlyValidator, validate, checkEmailExists);
 
 export default router;
