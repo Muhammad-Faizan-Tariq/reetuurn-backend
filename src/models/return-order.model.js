@@ -162,12 +162,12 @@ returnOrderSchema.pre("save", function (next) {
   next();
 });
 
-returnOrderSchema.index({ "metadata.orderNumber": 1 });
+// returnOrderSchema.index({ "metadata.orderNumber": 1 });
 returnOrderSchema.index({ status: 1 });
 returnOrderSchema.index({ user: 1, status: 1 });
 returnOrderSchema.index({ "schedule.date": 1 });
 returnOrderSchema.index({ "payment.status": 1 });
-returnOrderSchema.index({ "metadata.trackingNumber": 1 });
+// returnOrderSchema.index({ "metadata.trackingNumber": 1 });
 
 returnOrderSchema.virtual("formattedAddress").get(function () {
   return [
